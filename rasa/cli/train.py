@@ -111,8 +111,8 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
     # end timer here
     end_time = time.time()
-    timer = round(end_time - start_time, 2)
-    print(f"Time needed for training execution: {timer}s")
+    final_time = round(end_time - start_time, 2)
+    print(f"Time needed for training execution: {final_time}s")
     if training_result.code != 0 and can_exit:
         sys.exit(training_result.code)
 
