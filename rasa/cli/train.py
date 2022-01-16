@@ -88,6 +88,12 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
         for f in args.data
     ]
 
+    # begin timer here
+    import time
+
+    start_time = time.time()
+    print("Timer started")
+
     training_result = train_all(
         domain=domain,
         config=config,
@@ -102,6 +108,11 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
         model_to_finetune=_model_for_finetuning(args),
         finetuning_epoch_fraction=args.epoch_fraction,
     )
+
+    # end timer here
+    end_time = time.time()
+    timer = round(end_time - start_time, 2)
+    print(f"Time needed for training execution: {timer}s")
     if training_result.code != 0 and can_exit:
         sys.exit(training_result.code)
 
