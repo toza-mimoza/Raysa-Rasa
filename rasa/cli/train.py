@@ -74,6 +74,13 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
         Path to a trained model or `None` if training was not successful.
     """
     from rasa import train as train_all
+    from rasa import train_dist as train_all_dist
+
+    import ray
+
+    # init nodes/cluster
+    ray.init(num_cpus=2, num_gpus=0)
+    # ray.init(num_cpus=2, num_gpus=0)
 
     domain = rasa.cli.utils.get_validated_path(
         args.domain, "domain", DEFAULT_DOMAIN_PATH, none_is_valid=True
@@ -91,31 +98,82 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     # begin timer here
     import time
 
-    start_time = time.time()
-    print("Timer started")
+    TRAIN_DIST = True
+    training_result = None
 
-    training_result = train_all(
-        domain=domain,
-        config=config,
-        training_files=training_files,
-        output=args.out,
-        dry_run=args.dry_run,
-        force_training=args.force,
-        fixed_model_name=args.fixed_model_name,
-        persist_nlu_training_data=args.persist_nlu_data,
-        core_additional_arguments=extract_core_additional_arguments(args),
-        nlu_additional_arguments=extract_nlu_additional_arguments(args),
-        model_to_finetune=_model_for_finetuning(args),
-        finetuning_epoch_fraction=args.epoch_fraction,
-    )
+    if TRAIN_DIST:
+        print("Training WITH Ray ...")
+        print(
+            """This cluster consists of
+                {} nodes in total
+                {} CPU resources in total
+            """.format(
+                len(ray.nodes()), ray.cluster_resources()["CPU"]
+            )
+        )
+        start_time = time.time()
+        print("Timer started ...")
+
+        training_result = train_all_dist(
+            domain=domain,
+            config=config,
+            training_files=training_files,
+            output=args.out,
+            dry_run=args.dry_run,
+            force_training=True,  # args.force,
+            fixed_model_name=args.fixed_model_name,
+            persist_nlu_training_data=args.persist_nlu_data,
+            core_additional_arguments=extract_core_additional_arguments(args),
+            nlu_additional_arguments=extract_nlu_additional_arguments(args),
+            model_to_finetune=_model_for_finetuning(args),
+            finetuning_epoch_fraction=args.epoch_fraction,
+        )
+
+        # training_result = ray.get(
+        #     train_all_dist.remote(
+        #         domain=domain,
+        #         config=config,
+        #         training_files=training_files,
+        #         output=args.out,
+        #         dry_run=args.dry_run,
+        #         force_training=False,  # args.force,
+        #         fixed_model_name=args.fixed_model_name,
+        #         persist_nlu_training_data=args.persist_nlu_data,
+        #         core_additional_arguments=extract_core_additional_arguments(args),
+        #         nlu_additional_arguments=extract_nlu_additional_arguments(args),
+        #         model_to_finetune=_model_for_finetuning(args),
+        #         finetuning_epoch_fraction=args.epoch_fraction,
+        #     )
+        # )
+    else:
+        print("Training W/O Ray ...")
+        start_time = time.time()
+        print("Timer started ...")
+        training_result = train_all(
+            domain=domain,
+            config=config,
+            training_files=training_files,
+            output=args.out,
+            dry_run=args.dry_run,
+            force_training=True,  # args.force,
+            fixed_model_name=args.fixed_model_name,
+            persist_nlu_training_data=args.persist_nlu_data,
+            core_additional_arguments=extract_core_additional_arguments(args),
+            nlu_additional_arguments=extract_nlu_additional_arguments(args),
+            model_to_finetune=_model_for_finetuning(args),
+            finetuning_epoch_fraction=args.epoch_fraction,
+        )
 
     # end timer here
     end_time = time.time()
     final_time = round(end_time - start_time, 2)
     print(f"Time needed for training execution: {final_time}s")
-    if training_result.code != 0 and can_exit:
+
+    if training_result and training_result.code != 0 and can_exit:
         sys.exit(training_result.code)
 
+    print("Shutting down Ray cluster ...")
+    ray.shutdown()
     return training_result.model
 
 
