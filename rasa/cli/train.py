@@ -80,7 +80,8 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
     # init nodes/cluster
     # ray.init(num_cpus=2, num_gpus=0)
-    ray.init()
+    #   ray.init()
+    ray.init(address="auto", _redis_password="5241590000000000")
 
     domain = rasa.cli.utils.get_validated_path(
         args.domain, "domain", DEFAULT_DOMAIN_PATH, none_is_valid=True
