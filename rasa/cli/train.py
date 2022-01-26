@@ -98,7 +98,17 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
     if TRAIN_DIST:
         print("Training WITH Ray ...")
-
+        # connect to cluster
+        ray.init(address="auto", _redis_password="5241590000000000")
+        # print info about cluster size and resources
+        print(
+            """This cluster consists of
+                {} nodes in total
+                {} CPU resources in total
+            """.format(
+                len(ray.nodes()), ray.cluster_resources()["CPU"]
+            )
+        )
         start_time = time.time()
         print("Timer started ...")
 
@@ -144,6 +154,8 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     if training_result and training_result.code != 0 and can_exit:
         sys.exit(training_result.code)
 
+    ray.shutdown()
+    print("Shutting down Ray cluster ...")
     return training_result.model
 
 

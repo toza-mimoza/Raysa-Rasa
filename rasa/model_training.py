@@ -161,21 +161,24 @@ def train_dist(
     with telemetry.track_model_training(
         file_importer, model_type="rasa",
     ):
-        return _train_graph_dist(
-            file_importer,
-            training_type=training_type,
-            output_path=output,
-            fixed_model_name=fixed_model_name,
-            model_to_finetune=model_to_finetune,
-            force_full_training=force_training,
-            persist_nlu_training_data=persist_nlu_training_data,
-            finetuning_epoch_fraction=finetuning_epoch_fraction,
-            dry_run=dry_run,
-            **(core_additional_arguments or {}),
-            **(nlu_additional_arguments or {}),
+        return ray.get(
+            _train_graph_dist.remote(
+                file_importer,
+                training_type=training_type,
+                output_path=output,
+                fixed_model_name=fixed_model_name,
+                model_to_finetune=model_to_finetune,
+                force_full_training=force_training,
+                persist_nlu_training_data=persist_nlu_training_data,
+                finetuning_epoch_fraction=finetuning_epoch_fraction,
+                dry_run=dry_run,
+                **(core_additional_arguments or {}),
+                **(nlu_additional_arguments or {}),
+            )
         )
 
 
+@ray.remote
 def _train_graph_dist(
     file_importer: TrainingDataImporter,
     training_type: TrainingType,
