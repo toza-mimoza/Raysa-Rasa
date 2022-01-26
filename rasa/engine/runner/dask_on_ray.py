@@ -119,7 +119,7 @@ class DaskOnRayGraphRunner(GraphRunner):
             print(f"Run Graph: {run_graph}")
             print(f"Run Targets: {run_targets}")
 
-            dask_result = dask.get(run_graph, run_targets)
+            dask_result = dask.get(run_graph, run_targets, scheduler=ray_dask_get)
             ray.shutdown()
             print("Shutting down Ray cluster ...")
             return dict(dask_result)
