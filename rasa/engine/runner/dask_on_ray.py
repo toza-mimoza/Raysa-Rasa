@@ -121,6 +121,7 @@ class DaskOnRayGraphRunner(GraphRunner):
 
             dask_result = dask.get(run_graph, run_targets)
             ray.shutdown()
+            print("Shutting down Ray cluster ...")
             return dict(dask_result)
         except RuntimeError as e:
             raise GraphRunError("Error running runner.") from e

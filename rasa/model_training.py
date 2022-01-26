@@ -176,7 +176,6 @@ def train_dist(
         )
 
 
-# @ray.remote
 def _train_graph_dist(
     file_importer: TrainingDataImporter,
     training_type: TrainingType,

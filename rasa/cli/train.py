@@ -117,22 +117,6 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
             finetuning_epoch_fraction=args.epoch_fraction,
         )
 
-        # training_result = ray.get(
-        #     train_all_dist.remote(
-        #         domain=domain,
-        #         config=config,
-        #         training_files=training_files,
-        #         output=args.out,
-        #         dry_run=args.dry_run,
-        #         force_training=False,  # args.force,
-        #         fixed_model_name=args.fixed_model_name,
-        #         persist_nlu_training_data=args.persist_nlu_data,
-        #         core_additional_arguments=extract_core_additional_arguments(args),
-        #         nlu_additional_arguments=extract_nlu_additional_arguments(args),
-        #         model_to_finetune=_model_for_finetuning(args),
-        #         finetuning_epoch_fraction=args.epoch_fraction,
-        #     )
-        # )
     else:
         print("Training W/O Ray ...")
         start_time = time.time()
@@ -159,8 +143,6 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
     if training_result and training_result.code != 0 and can_exit:
         sys.exit(training_result.code)
-
-    print("Shutting down Ray cluster ...")
 
     return training_result.model
 
