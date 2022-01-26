@@ -103,21 +103,19 @@ def train_dist(
     """
     from rasa.model_training import train_dist
 
-    return ray.get(
-        train_dist.remote(
-            domain=domain,
-            config=config,
-            training_files=training_files,
-            output=output,
-            dry_run=dry_run,
-            force_training=force_training,
-            fixed_model_name=fixed_model_name,
-            persist_nlu_training_data=persist_nlu_training_data,
-            core_additional_arguments=core_additional_arguments,
-            nlu_additional_arguments=nlu_additional_arguments,
-            model_to_finetune=model_to_finetune,
-            finetuning_epoch_fraction=finetuning_epoch_fraction,
-        )
+    return train_dist(
+        domain=domain,
+        config=config,
+        training_files=training_files,
+        output=output,
+        dry_run=dry_run,
+        force_training=force_training,
+        fixed_model_name=fixed_model_name,
+        persist_nlu_training_data=persist_nlu_training_data,
+        core_additional_arguments=core_additional_arguments,
+        nlu_additional_arguments=nlu_additional_arguments,
+        model_to_finetune=model_to_finetune,
+        finetuning_epoch_fraction=finetuning_epoch_fraction,
     )
 
 

@@ -9,10 +9,11 @@ import rasa.engine.validation
 from rasa.engine.caching import LocalTrainingCache
 from rasa.engine.recipes.recipe import Recipe
 from rasa.engine.runner.dask import DaskGraphRunner
+from rasa.engine.runner.dask_on_ray import DaskOnRayGraphRunner
 from rasa.engine.storage.local_model_storage import LocalModelStorage
 from rasa.engine.storage.storage import ModelStorage
 from rasa.engine.training.components import FingerprintStatus
-from rasa.engine.training.graph_trainer import DistGraphTrainer, GraphTrainer
+from rasa.engine.training.graph_trainer import GraphTrainer
 from rasa.shared.importers.autoconfig import TrainingType
 from rasa.shared.importers.importer import TrainingDataImporter
 from rasa import telemetry
@@ -77,8 +78,6 @@ def _dry_run_result(
     return TrainingResult(dry_run_results=fingerprint_results)
 
 
-# #
-@ray.remote
 def train_dist(
     domain: Text,
     config: Text,
@@ -222,7 +221,7 @@ def _train_graph_dist(
         # inspect_serializability(test_trainer)
         # trainer = DistGraphTrainer.remote(model_storage, cache, DaskGraphRunner)
 
-        trainer = GraphTrainer(model_storage, cache, DaskGraphRunner)
+        trainer = GraphTrainer(model_storage, cache, DaskOnRayGraphRunner)
         if dry_run:
             fingerprint_status = trainer.fingerprint(
                 model_configuration.train_schema, file_importer

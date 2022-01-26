@@ -18,6 +18,7 @@ from rasa.shared.constants import (
     DEFAULT_DOMAIN_PATH,
     DEFAULT_DATA_PATH,
 )
+import ray
 
 
 def add_subparser(
@@ -76,13 +77,6 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     from rasa import train as train_all
     from rasa import train_dist as train_all_dist
 
-    import ray
-
-    # init nodes/cluster
-    # ray.init(num_cpus=2, num_gpus=0)
-    #   ray.init()
-    ray.init(address="auto", _redis_password="5241590000000000")
-
     domain = rasa.cli.utils.get_validated_path(
         args.domain, "domain", DEFAULT_DOMAIN_PATH, none_is_valid=True
     )
@@ -104,14 +98,7 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
     if TRAIN_DIST:
         print("Training WITH Ray ...")
-        print(
-            """This cluster consists of
-                {} nodes in total
-                {} CPU resources in total
-            """.format(
-                len(ray.nodes()), ray.cluster_resources()["CPU"]
-            )
-        )
+
         start_time = time.time()
         print("Timer started ...")
 
@@ -174,7 +161,7 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
         sys.exit(training_result.code)
 
     print("Shutting down Ray cluster ...")
-    ray.shutdown()
+
     return training_result.model
 
 
