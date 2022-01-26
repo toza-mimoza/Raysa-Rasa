@@ -41,21 +41,8 @@ class DaskOnRayGraphRunner(GraphRunner):
         )
         self._execution_context: ExecutionContext = execution_context
 
-        # connect to cluster
-        ray.init(address="auto", _redis_password="5241590000000000")
-
         # set ray's scheduler
         dask.config.set(scheduler=ray_dask_get)
-
-        # print info about cluster size and resources
-        print(
-            """This cluster consists of
-                {} nodes in total
-                {} CPU resources in total
-            """.format(
-                len(ray.nodes()), ray.cluster_resources()["CPU"]
-            )
-        )
 
     @classmethod
     def create(
@@ -116,12 +103,12 @@ class DaskOnRayGraphRunner(GraphRunner):
         )
 
         try:
-            print(f"Run Graph: {run_graph}")
-            print(f"Run Targets: {run_targets}")
+            # print(f"Run Graph: {run_graph}")
+            # print(f"Run Targets: {run_targets}")
 
-            dask_result = dask.get(run_graph, run_targets, scheduler=ray_dask_get)
-            ray.shutdown()
-            print("Shutting down Ray cluster ...")
+            dask_result = dask.threaded.get(
+                run_graph, run_targets,  # scheduler=ray_dask_get
+            )
             return dict(dask_result)
         except RuntimeError as e:
             raise GraphRunError("Error running runner.") from e
