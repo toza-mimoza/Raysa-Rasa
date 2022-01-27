@@ -10,6 +10,7 @@ from rasa.engine.graph import ExecutionContext, GraphNode, GraphNodeHook, GraphS
 from rasa.engine.runner.interface import GraphRunner
 from rasa.engine.storage.storage import ModelStorage
 
+
 logger = logging.getLogger(__name__)
 
 
