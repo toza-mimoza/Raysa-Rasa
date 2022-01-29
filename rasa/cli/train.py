@@ -154,8 +154,8 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     if training_result and training_result.code != 0 and can_exit:
         sys.exit(training_result.code)
 
-    ray.shutdown()
-    print("Shutting down Ray cluster ...")
+    # ray.shutdown()
+    # print("Shutting down Ray cluster ...")
     return training_result.model
 
 
