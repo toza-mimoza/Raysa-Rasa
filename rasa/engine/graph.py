@@ -15,6 +15,8 @@ from rasa.engine.storage.storage import ModelStorage
 from rasa.shared.exceptions import InvalidConfigException, RasaException
 from rasa.shared.importers.autoconfig import TrainingType
 
+import ray
+
 logger = logging.getLogger(__name__)
 
 
@@ -308,6 +310,27 @@ class ExecutionContext:
     # This is set by the `GraphNode` before it is passed to the `GraphComponent`.
     node_name: Optional[Text] = None
 
+def serialize_graph_node(a):
+    # from ray.util import inspect_serializability
+
+    # inspect_serializability(a._hooks, name="test")
+    
+    return (
+        a._node_name, 
+        a._component_class, 
+        a._constructor_name, 
+        a._component_config, 
+        a._fn_name, 
+        a._inputs, 
+        a._eager, 
+        a._model_storage, 
+        a._existing_resource,
+        a._execution_context,
+        a._hooks,
+        )
+
+def deserialize_graph_node(a):
+    return GraphNode(a)
 
 class GraphNode:
     """Instantiates and runs a `GraphComponent` within a graph.
@@ -354,6 +377,15 @@ class GraphNode:
         self._node_name: Text = node_name
         self._component_class: Type[GraphComponent] = component_class
         self._constructor_name: Text = constructor_name
+        
+        # print(self._component_class)
+        # print(self._constructor_name)
+        
+        # print(
+        #     getattr(
+        #         self._component_class, self._constructor_name
+        #     )           
+        # )
         self._constructor_fn: Callable = getattr(
             self._component_class, self._constructor_name
         )
@@ -377,6 +409,17 @@ class GraphNode:
         self._component: Optional[GraphComponent] = None
         if self._eager:
             self._load_component()
+        
+        
+
+    def __str__(self): 
+        return f"""GraphNode object:  
+        node_name: {self._node_name},
+        component class: {self._component_class},
+        constructor_name: {self._constructor_name},
+        constructor_fn: {self._constructor_fn},
+        model_storage: {self._model_storage}
+        """
 
     def _load_component(self, **kwargs: Any) -> None:
         logger.debug(

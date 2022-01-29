@@ -10,6 +10,15 @@ from rasa.engine.training import fingerprinting
 
 logger = logging.getLogger(__name__)
 
+def serializer_training_hook(a):
+    return #(None, a._model_storage, a._pruned_schema)
+
+def deserializer_training_hook(a):
+    # print("---------- LOOK HERE: ---------")
+    # print(a)
+    result = TrainingHook(a)
+    # print(result)
+    return result
 
 class TrainingHook(GraphNodeHook):
     """Caches fingerprints and outputs of nodes during model training."""
@@ -88,6 +97,11 @@ class TrainingHook(GraphNodeHook):
         graph_component_class = execution_context.graph_schema.nodes[node_name].uses
         return graph_component_class
 
+def serializer_logging_hook(a):
+    return
+
+def deserializer_logging_hook(a):
+    return LoggingHook(a)
 
 class LoggingHook(GraphNodeHook):
     """Logs the training of components."""
