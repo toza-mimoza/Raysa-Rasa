@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Text, Tuple, Union
 from rasa.core.http_interpreter import RasaNLUHttpInterpreter
 from rasa.engine import loader
 from rasa.engine.constants import PLACEHOLDER_MESSAGE, PLACEHOLDER_TRACKER
-from rasa.engine.runner.dask import DaskGraphRunner
+from rasa.engine.runner.dask_single_thread import DaskGraphRunner
 from rasa.engine.storage.local_model_storage import LocalModelStorage
 from rasa.engine.storage.storage import ModelMetadata
 from rasa.model import get_latest_model
