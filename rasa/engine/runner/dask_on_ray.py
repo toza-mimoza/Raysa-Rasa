@@ -6,11 +6,14 @@ from typing import Any, Dict, List, Optional, Text
 import dask
 
 from rasa.engine.exceptions import GraphRunError
-from rasa.engine.graph import ExecutionContext, GraphNode, GraphNodeHook, GraphSchema
+from rasa.engine.graph import ExecutionContext, GraphNode, GraphNodeHook, GraphSchema, serialize_graph_node, deserialize_graph_node
 from rasa.engine.runner.interface import GraphRunner
 from rasa.engine.storage.storage import ModelStorage
+from rasa.engine.training.hooks import LoggingHook, TrainingHook, serializer_logging_hook, serializer_training_hook, deserializer_logging_hook, deserializer_training_hook
+
 import ray
 from ray.util.dask import ray_dask_get
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +40,15 @@ class DaskOnRayGraphRunner(GraphRunner):
         """
         self._graph_schema = graph_schema
         self._instantiated_nodes: Dict[Text, GraphNode] = self._instantiate_nodes(
-            graph_schema, model_storage, execution_context, hooks
+            graph_schema, model_storage, execution_context, None
         )
         self._execution_context: ExecutionContext = execution_context
 
         # set ray's scheduler
-        dask.config.set(scheduler=ray_dask_get)
+        # dask.config.set(scheduler=ray_dask_get)
+        # ray.util.register_serializer(GraphNode, serializer=serialize_graph_node, deserializer=deserialize_graph_node)
+        # ray.util.register_serializer(LoggingHook, serializer=serializer_logging_hook, deserializer=deserializer_logging_hook)
+        ray.util.register_serializer(TrainingHook, serializer=serializer_training_hook, deserializer=deserializer_training_hook)
 
     @classmethod
     def create(
@@ -106,9 +112,24 @@ class DaskOnRayGraphRunner(GraphRunner):
             # print(f"Run Graph: {run_graph}")
             # print(f"Run Targets: {run_targets}")
 
-            dask_result = dask.threaded.get(
-                run_graph, run_targets,  # scheduler=ray_dask_get
-            )
+            # dask_result = dask.threaded.get(
+            #     run_graph, run_targets
+            # )
+            # inspect_serializability(test_serializability(run_graph), name="test")
+            # print(run_graph)
+            # import sys
+            #
+            # original_stdout = (
+            #     sys.stdout
+            # )  # Save a reference to the original standard output
+            #
+            # with open("output_graph_schema.txt", "w") as f:
+            #     sys.stdout = f  # Change the standard output to the file we created.
+            #     print(self._graph_schema)
+            #     sys.stdout = (
+            #         original_stdout  # Reset the standard output to its original value
+            #     )
+            dask_result = ray_dask_get(run_graph, run_targets)
             return dict(dask_result)
         except RuntimeError as e:
             raise GraphRunError("Error running runner.") from e
