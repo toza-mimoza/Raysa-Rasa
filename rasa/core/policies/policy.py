@@ -120,6 +120,7 @@ class Policy(GraphComponent):
 
         self._model_storage = model_storage
         self._resource = resource
+        print(f"Resource MEMOIZATION POLICY: {self._resource}")
 
     @classmethod
     def create(
