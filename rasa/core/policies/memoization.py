@@ -180,7 +180,7 @@ class MemoizationPolicy(Policy):
             trackers_as_states, trackers_as_actions
         )
         logger.debug(f"Memorized {len(self.lookup)} unique examples.")
-
+        print(f"P_RES MEMO: {self._resource}")
         self.persist()
         return self._resource
 
