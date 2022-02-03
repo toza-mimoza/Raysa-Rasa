@@ -116,9 +116,10 @@ class LocalModelStorage(ModelStorage):
         """Persists data for a resource (see parent class for full docstring)."""
         logger.debug(f"Resource '{resource.name}' was requested for writing.")
         directory = self._directory_for_resource(resource)
+        
 
         if not directory.exists():
-            directory.mkdir()
+            directory.mkdir(parents=True)
 
         yield directory
 
