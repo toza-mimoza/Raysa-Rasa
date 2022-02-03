@@ -119,7 +119,7 @@ class LocalModelStorage(ModelStorage):
 
         print(f"R_PATH: {directory.absolute()}")
         if not directory.exists():
-            # print(f"R_DIR NOT EXISTING: {directory}")
+            print(f"R_DIR NOT EXISTING: {directory}")
             # directory.mkdir(parents=True, exist_ok=True)
             import os
             os.makedirs(directory.absolute(), exist_ok=True)
