@@ -121,7 +121,6 @@ class LocalModelStorage(ModelStorage):
         if not directory.exists():
             # print(f"R_DIR NOT EXISTING: {directory}")
             directory.mkdir(parents=True, exist_ok=True)
-            bad code
             # import os
             # os.makedirs(directory.absolute(), exist_ok=True)
         yield directory
