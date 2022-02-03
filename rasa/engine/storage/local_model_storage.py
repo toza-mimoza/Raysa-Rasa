@@ -119,7 +119,7 @@ class LocalModelStorage(ModelStorage):
         
         print(f"R_PATH: {directory.absolute()}")
         if not directory.exists():
-            directory.mkdir(parents=True)
+            directory.mkdir(parents=True, exist_ok=True)
 
         yield directory
 
