@@ -266,13 +266,15 @@ class MemoizationPolicy(Policy):
 
     def persist(self) -> None:
         """Persists the policy to storage."""
+        print("PERSIST!")
         with self._model_storage.write_to(self._resource) as path:
+            
             # not all policies have a featurizer
             if self.featurizer is not None:
                 self.featurizer.persist(path)
 
             file = Path(path) / self._metadata_filename()
-
+            print(f"MEMO FILE: {file}")
             rasa.shared.utils.io.create_directory_for_file(file)
             rasa.shared.utils.io.dump_obj_as_json_to_file(file, self._metadata())
 
