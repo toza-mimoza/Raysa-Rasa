@@ -117,7 +117,7 @@ class LocalModelStorage(ModelStorage):
         logger.debug(f"Resource '{resource.name}' was requested for writing.")
         directory = self._directory_for_resource(resource)
         
-
+        print(f"R_PATH: {directory.absolute()}")
         if not directory.exists():
             directory.mkdir(parents=True)
 
