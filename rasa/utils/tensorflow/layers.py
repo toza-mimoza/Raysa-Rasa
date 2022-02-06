@@ -2,9 +2,12 @@ import logging
 from typing import List, Optional, Text, Tuple, Callable, Union, Any
 import tensorflow as tf
 import tensorflow_addons as tfa
+
+# TODO: The following is not (yet) available via tf.keras
+from keras.utils.control_flow_util import smart_cond
+import tensorflow.keras.backend as K
+
 import rasa.utils.tensorflow.crf
-from tensorflow.python.layers.utils import smart_cond
-from tensorflow.keras import backend as K
 from rasa.utils.tensorflow.constants import (
     SOFTMAX,
     MARGIN,
@@ -554,10 +557,7 @@ class InputMask(tf.keras.layers.Layer):
 
             return tf.where(tf.tile(lm_mask_bool, (1, 1, x.shape[-1])), x_other, x)
 
-        return (
-            smart_cond(training, x_masked, lambda: tf.identity(x)),
-            lm_mask_bool,
-        )
+        return (smart_cond(training, x_masked, lambda: tf.identity(x)), lm_mask_bool)
 
 
 def _scale_loss(log_likelihood: tf.Tensor) -> tf.Tensor:
@@ -1439,7 +1439,7 @@ class MultiLabelDotProductLoss(DotProductLoss):
         )
 
         pos_labels_embed = tf.expand_dims(
-            batch_labels_embed, axis=1, name="expand_pos_labels",
+            batch_labels_embed, axis=1, name="expand_pos_labels"
         )
 
         # Pick random examples from the batch
@@ -1457,7 +1457,7 @@ class MultiLabelDotProductLoss(DotProductLoss):
 
         # Get binary indicators of whether a candidate is positive or not
         pos_neg_indicators = self._get_pos_neg_indicators(
-            all_labels_ids, batch_labels_ids, candidate_ids,
+            all_labels_ids, batch_labels_ids, candidate_ids
         )
 
         return (

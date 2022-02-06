@@ -311,12 +311,22 @@ class RedisTrackerStore(TrackerStore):
         record_exp: Optional[float] = None,
         key_prefix: Optional[Text] = None,
         use_ssl: bool = False,
+        ssl_keyfile: Optional[Text] = None,
+        ssl_certfile: Optional[Text] = None,
+        ssl_ca_certs: Optional[Text] = None,
         **kwargs: Dict[Text, Any],
     ) -> None:
         import redis
 
         self.red = redis.StrictRedis(
-            host=host, port=port, db=db, password=password, ssl=use_ssl
+            host=host,
+            port=port,
+            db=db,
+            password=password,
+            ssl=use_ssl,
+            ssl_keyfile=ssl_keyfile,
+            ssl_certfile=ssl_certfile,
+            ssl_ca_certs=ssl_ca_certs,
         )
         self.record_exp = record_exp
 
@@ -418,9 +428,9 @@ class DynamoTrackerStore(TrackerStore):
         except self.client.exceptions.ResourceNotFoundException:
             table = dynamo.create_table(
                 TableName=self.table_name,
-                KeySchema=[{"AttributeName": "sender_id", "KeyType": "HASH"},],
+                KeySchema=[{"AttributeName": "sender_id", "KeyType": "HASH"}],
                 AttributeDefinitions=[
-                    {"AttributeName": "sender_id", "AttributeType": "S"},
+                    {"AttributeName": "sender_id", "AttributeType": "S"}
                 ],
                 ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
             )
@@ -443,15 +453,15 @@ class DynamoTrackerStore(TrackerStore):
     def serialise_tracker(self, tracker: "DialogueStateTracker") -> Dict:
         """Serializes the tracker, returns object with decimal types."""
         d = tracker.as_dialogue().as_dict()
-        d.update(
-            {"sender_id": tracker.sender_id,}
-        )
+        d.update({"sender_id": tracker.sender_id})
         # DynamoDB cannot store `float`s, so we'll convert them to `Decimal`s
         return core_utils.replace_floats_with_decimals(d)
 
     def retrieve(self, sender_id: Text) -> Optional[DialogueStateTracker]:
-        # Retrieve dialogues for a sender_id in reverse-chronological order based on
-        # the session_date sort key
+        """Retrieve dialogues for a sender_id in reverse-chronological order.
+
+        Based on the session_date sort key.
+        """
         dialogues = self.db.query(
             KeyConditionExpression=Key("sender_id").eq(sender_id),
             Limit=1,
@@ -751,6 +761,21 @@ def ensure_schema_exists(session: "Session") -> None:
             raise ValueError(schema_name)
 
 
+def validate_port(port: Any) -> Optional[int]:
+    """Ensure that port can be converted to integer.
+
+    Raises:
+        RasaException if port cannot be cast to integer.
+    """
+    if port is not None and not isinstance(port, int):
+        try:
+            port = int(port)
+        except ValueError as e:
+            raise RasaException(f"The port '{port}' cannot be cast to integer.") from e
+
+    return port
+
+
 class SQLTrackerStore(TrackerStore):
     """Store which can save and retrieve trackers from an SQL database."""
 
@@ -786,6 +811,8 @@ class SQLTrackerStore(TrackerStore):
         **kwargs: Dict[Text, Any],
     ) -> None:
         import sqlalchemy.exc
+
+        port = validate_port(port)
 
         engine_url = self.get_db_url(
             dialect, host, port, db, username, password, login_db, query
@@ -890,7 +917,7 @@ class SQLTrackerStore(TrackerStore):
 
         if not self.engine.dialect.name == "postgresql":
             rasa.shared.utils.io.raise_warning(
-                "The parameter 'login_db' can only be used with a postgres database.",
+                "The parameter 'login_db' can only be used with a postgres database."
             )
             return
 
